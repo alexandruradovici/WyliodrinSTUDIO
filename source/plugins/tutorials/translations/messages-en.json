@@ -1,0 +1,22 @@
+{
+	"BUTTON_TOQUE_NAME": {
+		"message": "Tutorials",
+		"description": "This button pops-up a notification"
+	},
+	"BUTTON_TOQUE_NOTIFICATION_TEXT": {
+		"message" : "Check tutorials!",
+		"description": "This is the notification text"
+	},
+	"BUTTON_TOQUE_DIALOG_TITLE": {
+		"message": "Hello Tutorials",
+		"description": "This is the title of the dialog."
+	},
+	"BUTTON_TOQUE_INPUT_TEXT": {
+		"message": "Please input your text here",
+		"description": "This is the content of the dialog."
+	},
+	"PROJECT_LANGUAGE_PROMPT": {
+        "message": "Please input the programming language for the project",
+        "description": "Label for the programming language to be given to the project"
+	}
+}
