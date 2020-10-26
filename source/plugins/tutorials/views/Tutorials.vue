@@ -26,16 +26,16 @@
 							<v-list-item-subtitle v-text="tutorial.description"></v-list-item-subtitle>
 					</v-list-item-content>
 					<v-list-item-avatar
-					v-if="tutorial.language.toString() === 'python'"
+					v-if="tutorial.language === 'python'"
 					>
 						<v-img src="plugins/tutorials/data/img/python.jpg"></v-img>
 					</v-list-item-avatar>
 					<v-list-item-avatar
-					v-else-if="tutorial.language.toString() === 'micropython'"
+					v-else-if="tutorial.language === 'micropython'"
 					>
 						<v-img src="plugins/tutorials/data/img/micropython.jpg"></v-img>
 					</v-list-item-avatar>
-					<v-btn color="primary" @click="createProject(tutorial.title, tutorial.language)">Click</v-btn>
+					<v-btn color="primary" @click="createProject(tutorial)">Click</v-btn>
 				</v-list-item>
 			</v-list>
 		</v-card>					
@@ -52,12 +52,12 @@ export default {
 	data ()
 	{
 		return  {
-			tutorials: []
-			
+			tutorials: []		
 		};
 	},
 	async created () {
 		let response = await axios.get('https://api.github.com/repos/alexandra2607/tutorials-wyliodrin/contents');
+		
 		let dirs =[];
 		for (let list of response.data) {
 			if (list.type === 'dir') {
@@ -66,50 +66,51 @@ export default {
 		}
 		
 		for (let dir of dirs) {
-			let tutorial = await axios.get (`https://raw.githubusercontent.com/alexandra2607/tutorials-wyliodrin/master/${dir}/.project/tutorial.json`);
-			this.tutorials.push(tutorial.data);
-		}
-		
+			let tutorialData = await axios.get (`https://raw.githubusercontent.com/alexandra2607/tutorials-wyliodrin/master/${dir}/.project/tutorial.json`);
+			let tutorial = tutorialData.data;
+			this.tutorials.push(tutorial);
+			tutorial['path'] = dir;
+		}		
 	},
-
 	methods: {	
 		close ()
 		{
 			this.$root.$emit ('submit');
 		},
-		async createProject(projectTitle, projectLanguage) {
-			console.log('The name of the project is ' + projectTitle);
+		async createProject(tutorial) {
 			let nameProject = await this.studio.workspace.showPrompt('Name your project', 'PROJECT_NAME_PROMPT','','PROJECT_NEW_NAME');
 
 			if (nameProject !== null) 
-			{	
-				let createProject = await this.studio.projects.createEmptyProject(nameProject.toString(), projectLanguage.toString());
-				console.log('project created');
-				
+			{					
+				let createProject = await this.studio.projects.createEmptyProject(nameProject, tutorial.language);
 
 				let dirInfos = {};
-				await this.getDirListOfFiles(projectTitle.toString(), dirInfos);
-				console.log(dirInfos);
-
+				await this.getDirListOfFiles(tutorial.path, dirInfos);
+				//console.log("dirInfos: " + dirInfos);
+				
 				for (let key in dirInfos) {
-					let folderPath = key.replace(projectTitle.toString(), '');
+					let folderPath = key.replace(tutorial.path, '');
 					if (folderPath !== '') {
-						await this.studio.projects.newFolder(this.name, folderPath);
+						
+						await this.studio.projects.newFolder(createProject, folderPath);
 					}
 					for (let file of dirInfos[key]) {
-						let filePath = file.replace(projectTitle.toString(), '');
-						await createProject.newFile(this.name,filePath, await this.downloadFile(file));
+						let filePath = file.replace(tutorial.path, '');
+						let fileData =  Buffer.from(JSON.stringify( await this.downloadFile(file)));
+						//let fileData = await this.downloadFile(file);
+						//let fileData = Buffer.from(await this.downloadFile(file), 'utf-8');
+						console.log(fileData);
+						await this.studio.projects.newFile(createProject, filePath, fileData);
 					}
 				}	 
-			} 
-			else 
-			{
-				console.log('back');
-			}
+			}	
 		},
 		async getDirListOfFiles (path, dirInfos) {
+			
 			let response = await axios.get ('https://api.github.com/repos/alexandra2607/tutorials-wyliodrin/contents/'+ path);
-		
+			// debugger
+			// console.log(response);
+
 			for(let item of response.data) {
 				if (item.type === 'file') {
 					if (dirInfos[path] === undefined) {
@@ -120,10 +121,9 @@ export default {
 				else if (item.type === 'dir') {
 					await this.getDirListOfFiles(item.path, dirInfos);
 				}
-			}
+			}	
 		},
 		async downloadFile (path) {
-		
 			let file = await axios.get (`https://raw.githubusercontent.com/alexandra2607/tutorials-wyliodrin/master/${path}`);
 			return file.data;
 		}
