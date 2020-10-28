@@ -96,12 +96,17 @@ export default {
 					}
 					for (let file of dirInfos[key]) {
 						let filePath = file.replace(tutorial.path, '');
-						let fileData =  Buffer.from(JSON.stringify( await this.downloadFile(file)));
-						//let fileData = await this.downloadFile(file);
-						//let fileData = Buffer.from(await this.downloadFile(file), 'utf-8');
-						console.log(fileData);
+						let fileData = await this.downloadFile(file);
+						let fileData2 = new Uint8Array(fileData);
+						var json = await new Response(fileData2).json();
+						console.log(key);
+						console.log(file);
+						console.log("file data:");
+						//console.log(fileData.toString());
+						console.log(json);
 						await this.studio.projects.newFile(createProject, filePath, fileData);
 					}
+					
 				}	 
 			}	
 		},
@@ -124,7 +129,7 @@ export default {
 			}	
 		},
 		async downloadFile (path) {
-			let file = await axios.get (`https://raw.githubusercontent.com/alexandra2607/tutorials-wyliodrin/master/${path}`);
+			let file = await axios.get (`https://raw.githubusercontent.com/alexandra2607/tutorials-wyliodrin/master/${path}`, {responseType: 'arraybuffer',});
 			return file.data;
 		}
 	}
