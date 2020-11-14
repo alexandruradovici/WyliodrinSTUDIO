@@ -47,6 +47,7 @@
 
 <script>
 import axios from 'axios';
+//import { js2xml } from 'xml-js';
 export default {
 	name: 'Tutorials',
 	data ()
@@ -86,8 +87,7 @@ export default {
 
 				let dirInfos = {};
 				await this.getDirListOfFiles(tutorial.path, dirInfos);
-				//console.log("dirInfos: " + dirInfos);
-				
+								
 				for (let key in dirInfos) {
 					let folderPath = key.replace(tutorial.path, '');
 					if (folderPath !== '') {
@@ -95,15 +95,22 @@ export default {
 						await this.studio.projects.newFolder(createProject, folderPath);
 					}
 					for (let file of dirInfos[key]) {
+					
 						let filePath = file.replace(tutorial.path, '');
 						let fileData = await this.downloadFile(file);
 						let fileData2 = new Uint8Array(fileData);
-						var json = await new Response(fileData2).json();
+						// let fileData3 = JSON.parse(JSON.stringify(fileData2));
+						// var json = await new Response(fileData2).json();
 						console.log(key);
 						console.log(file);
 						console.log("file data:");
+						if (!fileData) console.log("nimic");
+						if (typeof fileData === 'object') console.log(fileData);
+						if (typeof fileData === 'string') console.log(JSON.parse(fileData));
+						
+						
 						//console.log(fileData.toString());
-						console.log(json);
+						//console.log(json);
 						await this.studio.projects.newFile(createProject, filePath, fileData);
 					}
 					
