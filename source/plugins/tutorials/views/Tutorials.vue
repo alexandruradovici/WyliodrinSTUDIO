@@ -1,45 +1,53 @@
 <template>
 	<v-card class="manager-box emulator-box">
 		<v-card-title>
-			<span class="headline">Tutorials</span>
+			<span class="headline">{{$t('TUTORIALS_NAME')}}</span>
 			<v-spacer></v-spacer>
 		</v-card-title>
 
-		<v-card>
-			<v-list three-line>
-				<v-list-item
-				v-for="tutorial in tutorials"
-				:key="tutorial.title"	
-				>
-					<v-list-item-avatar
-					v-if="tutorial.board === 'ESP8266'"
+		<v-card-text>
+			<div v-if="!tutorials">
+				<v-progress-circular indeterminate></v-progress-circular>
+			</div>
+			<div v-else>
+				<div v-if="downloading">
+					<v-row align="center" justify="center">
+							Downloading ...
+
+						<v-progress-circular
+							:rotate="-90"
+							:size="100"
+							:width="15"
+							:value="progress.value"
+							color="teal"
+						>
+							{{ progress.text }}
+						</v-progress-circular>
+					</v-row>
+				</div>
+				<v-list v-else three-line>
+					<v-list-item
+					v-for="tutorial in tutorials"
+					@click="createProject(tutorial)"
+					:key="tutorial.title"	
+					:disabled="!available (tutorial.language)"
 					>
-						<v-img src="plugins/tutorials/data/img/esp8266.png"></v-img>
-					</v-list-item-avatar>
-					<v-list-item-avatar
-					v-else
-					>
-						<v-img src="plugins/tutorials/data/img/esp.png"></v-img>
-					</v-list-item-avatar>
-					<v-list-item-content >
-							<v-list-item-title v-text="tutorial.title"></v-list-item-title>
-							<v-list-item-subtitle v-text="tutorial.description"></v-list-item-subtitle>
-					</v-list-item-content>
-					<v-list-item-avatar
-					v-if="tutorial.language === 'python'"
-					>
-						<v-img src="plugins/tutorials/data/img/python.jpg"></v-img>
-					</v-list-item-avatar>
-					<v-list-item-avatar
-					v-else-if="tutorial.language === 'micropython'"
-					>
-						<v-img src="plugins/tutorials/data/img/micropython.jpg"></v-img>
-					</v-list-item-avatar>
-					<v-btn color="primary" @click="createProject(tutorial)">Click</v-btn>
-				</v-list-item>
-			</v-list>
-		</v-card>					
+						<v-list-item-avatar>
+							<v-img :src="boardIcon (tutorial.type, tutorial.board)"></v-img>
+						</v-list-item-avatar>
+						<v-list-item-content >
+								<v-list-item-title v-text="tutorial.title"></v-list-item-title>
+								<v-list-item-subtitle v-text="tutorial.description"></v-list-item-subtitle>
+						</v-list-item-content>
+						<v-list-item-avatar>
+							<v-img :src="languageIcon (tutorial.language)"></v-img>
+						</v-list-item-avatar>
+					</v-list-item>
+				</v-list>
+			</div>
+		</v-card-text>					
 		<v-card-actions> 
+			<v-spacer/>
 			<v-btn text @click="close">CLOSE</v-btn>
 		</v-card-actions>
 	</v-card>
@@ -50,16 +58,20 @@ import axios from 'axios';
 //import { js2xml } from 'xml-js';
 export default {
 	name: 'Tutorials',
+	props: ['repository'],
 	data ()
 	{
 		return  {
-			tutorials: []		
+			tutorials: null,	
+			downloading: false,
+			progress: {}
 		};
 	},
 	async created () {
-		let response = await axios.get('https://api.github.com/repos/alexandra2607/tutorials-wyliodrin/contents');
+		let response = await axios.get(`https://api.github.com/repos/${this.repository}/contents`);
 		
 		let dirs =[];
+		let tutorials = [];
 		for (let list of response.data) {
 			if (list.type === 'dir') {
 				dirs.push(list.path);
@@ -67,59 +79,92 @@ export default {
 		}
 		
 		for (let dir of dirs) {
-			let tutorialData = await axios.get (`https://raw.githubusercontent.com/alexandra2607/tutorials-wyliodrin/master/${dir}/.project/tutorial.json`);
+			let tutorialData = await axios.get (`https://raw.githubusercontent.com/${this.repository}/master/${dir}/.project/tutorial.json`);
 			let tutorial = tutorialData.data;
-			this.tutorials.push(tutorial);
+			tutorials.push(tutorial);
 			tutorial['path'] = dir;
-		}		
+		}	
+		
+		this.tutorials = tutorials;
 	},
 	methods: {	
 		close ()
 		{
 			this.$root.$emit ('submit');
 		},
+		boardIcon (type, board) {
+			let icon =  this.studio.workspace.getBoardIcon (type, board);
+			if (!icon) icon = 'plugins/tutorials/data/img/unknown_board.png';
+			return icon;
+		},
+		languageIcon (languageId) {
+			let language = this.studio.projects.getLanguage (languageId);
+			if (language)
+			{
+				return language.icon;
+			}
+			else
+			{
+				return 'plugins/tutorials/data/img/toque.png';
+			}
+		},
+		available (languageId) {
+			return this.studio.projects.getLanguage (languageId) != null;
+		},
 		async createProject(tutorial) {
-			let nameProject = await this.studio.workspace.showPrompt('Name your project', 'PROJECT_NAME_PROMPT','','PROJECT_NEW_NAME');
+			let nameProject = await this.studio.workspace.showPrompt('TUTORIALS_IMPORT', 'TUTORIALS_IMPORT_PROJECT_NAME', tutorial.title, 'TUTORIALS_IMPORT', {title: tutorial.title});
 
 			if (nameProject !== null) 
-			{					
+			{				
+				this.downloading = true;	
 				let createProject = await this.studio.projects.createEmptyProject(nameProject, tutorial.language);
 
-				let dirInfos = {};
-				await this.getDirListOfFiles(tutorial.path, dirInfos);
-								
-				for (let key in dirInfos) {
-					let folderPath = key.replace(tutorial.path, '');
-					if (folderPath !== '') {
-						
-						await this.studio.projects.newFolder(createProject, folderPath);
+				if (createProject) {
+
+					let dirInfos = {};
+					await this.getDirListOfFiles(tutorial.path, dirInfos);
+
+					let numberOfFiles = 0;
+					for (let key in dirInfos) {
+						numberOfFiles += dirInfos[key].length;
 					}
-					for (let file of dirInfos[key]) {
-					
-						let filePath = file.replace(tutorial.path, '');
-						let fileData = await this.downloadFile(file);
-						let fileData2 = new Uint8Array(fileData);
-						// let fileData3 = JSON.parse(JSON.stringify(fileData2));
-						// var json = await new Response(fileData2).json();
-						console.log(key);
-						console.log(file);
-						console.log("file data:");
-						if (!fileData) console.log("nimic");
-						if (typeof fileData === 'object') console.log(fileData);
-						if (typeof fileData === 'string') console.log(JSON.parse(fileData));
+
+					let downloadedFiles = 0;
+									
+					for (let key in dirInfos) {
+						let folderPath = key.replace(tutorial.path, '');
+						if (folderPath !== '') {
+							
+							await this.studio.projects.newFolder(createProject, folderPath);
+						}
+						for (let file of dirInfos[key]) {
 						
+							let filePath = file.replace(tutorial.path, '');
+							let fileData = await this.downloadFile(file);
+							console.log (file);
+							console.log (fileData);
+							
+							await this.studio.projects.newFile(createProject, filePath, Buffer.from (fileData));
+
+							downloadedFiles++;
+							this.progress.value = (downloadedFiles/numberOfFiles)*100;
+							this.progress.text = this.progress.value.toFixed(2)+'%';
+						}
 						
-						//console.log(fileData.toString());
-						//console.log(json);
-						await this.studio.projects.newFile(createProject, filePath, fileData);
-					}
-					
-				}	 
+					}	 
+					this.close ();
+					this.studio.projects.selectCurrentProject (createProject, true);
+				}
+				else
+				{
+					this.studio.workspace.showNotification ('TUTORIALS_PROJECT_EXISTS', {name: nameProject});
+				}
+				this.downloading = false;
 			}	
 		},
 		async getDirListOfFiles (path, dirInfos) {
 			
-			let response = await axios.get ('https://api.github.com/repos/alexandra2607/tutorials-wyliodrin/contents/'+ path);
+			let response = await axios.get (`https://api.github.com/repos/${this.repository}/contents/${path}`);
 			// debugger
 			// console.log(response);
 
@@ -136,7 +181,7 @@ export default {
 			}	
 		},
 		async downloadFile (path) {
-			let file = await axios.get (`https://raw.githubusercontent.com/alexandra2607/tutorials-wyliodrin/master/${path}`, {responseType: 'arraybuffer',});
+			let file = await axios.get (`https://raw.githubusercontent.com/${this.repository}/master/${path}`, {responseType: 'arraybuffer',});
 			return file.data;
 		}
 	}
