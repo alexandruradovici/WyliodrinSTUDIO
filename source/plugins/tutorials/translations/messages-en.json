@@ -1,22 +1,18 @@
 {
-	"BUTTON_TOQUE_NAME": {
+	"TUTORIALS_NAME": {
 		"message": "Tutorials",
-		"description": "This button pops-up a notification"
+		"description": "The text for the tutorials toolbar button and the title for the tutorials dialog"
 	},
-	"BUTTON_TOQUE_NOTIFICATION_TEXT": {
-		"message" : "Check tutorials!",
-		"description": "This is the notification text"
+	"TUTORIALS_IMPORT": {
+		"message": "Import {title}",
+		"description": "The title of the import tutorial dialog"
 	},
-	"BUTTON_TOQUE_DIALOG_TITLE": {
-		"message": "Hello Tutorials",
-		"description": "This is the title of the dialog."
+	"TUTORIALS_IMPORT_PROJECT_NAME": {
+		"message": "Input the name for the new project",
+		"description": "Name of the new project"
 	},
-	"BUTTON_TOQUE_INPUT_TEXT": {
-		"message": "Please input your text here",
-		"description": "This is the content of the dialog."
-	},
-	"PROJECT_LANGUAGE_PROMPT": {
-        "message": "Please input the programming language for the project",
-        "description": "Label for the programming language to be given to the project"
+	"TUTORIALS_PROJECT_EXISTS": {
+		"message": "A project with the name {name} already exists, please choose another name for it.",
+		"description": "A message shown if there is already a project with that name"
 	}
 }

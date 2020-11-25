@@ -1,22 +1,34 @@
-let studio = null;
-let button_toque = {};
-
 import Tutorials from './views/Tutorials.vue';
 
+let studio = null;
 
 export function setup(options, imports, register) 
 {
 	studio = imports;
 
-	studio.workspace.registerToolbarButton ('BUTTON_TOQUE_NAME', 20, 
+	let tutorials = {
+		/**
+		 * Show a list for tutorials from a github repository
+		 * 
+		 * @param {String} githubRepository - username/repository
+		 */
+		showTutorials (githubRepository) {
+			studio.workspace.showDialog (Tutorials, {
+				repository: githubRepository,
+				width: 600
+			});
+		}
+	};
+
+	studio.workspace.registerToolbarButton ('TUTORIALS_NAME', 20, 
 		() => { 
-			studio.workspace.showDialog (Tutorials);
+			tutorials.showTutorials ('alexandruradovici/tutorials-wyliodrin');
 		},
 
 		'plugins/tutorials/data/img/toque.png');
 		
 	register(null, {
-		button_toque: button_toque
+		tutorials: tutorials
 	});
 	
 }

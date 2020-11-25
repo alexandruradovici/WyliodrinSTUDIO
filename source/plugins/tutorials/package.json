@@ -5,7 +5,7 @@
 	"private": false,
 	"plugin": {
 		"consumes": ["workspace", "projects"],
-		"provides": ["button_toque"],
+		"provides": ["tutorials"],
 		"target": ["browser", "electron"]
 	}
 }
