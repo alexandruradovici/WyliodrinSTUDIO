@@ -26,6 +26,7 @@ export function setup(options, imports, register)
 		 */
 		importTutorial (tutorialLink) {
 			
+			
 		}
 	};
 
