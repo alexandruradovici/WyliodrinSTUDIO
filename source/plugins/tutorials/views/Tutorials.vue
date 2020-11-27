@@ -113,7 +113,7 @@ export default {
 		},
 		async createProject(tutorial) {
 			let nameProject = await this.studio.workspace.showPrompt('TUTORIALS_IMPORT', 'TUTORIALS_IMPORT_PROJECT_NAME', tutorial.title, 'TUTORIALS_IMPORT', {title: tutorial.title});
-
+s
 			if (nameProject !== null) 
 			{				
 				this.downloading = true;	
@@ -167,7 +167,6 @@ export default {
 			let response = await axios.get (`https://api.github.com/repos/${this.repository}/contents/${path}`);
 			// debugger
 			// console.log(response);
-
 			for(let item of response.data) {
 				if (item.type === 'file') {
 					if (dirInfos[path] === undefined) {
