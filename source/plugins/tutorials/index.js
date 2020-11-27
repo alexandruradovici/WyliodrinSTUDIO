@@ -25,8 +25,7 @@ export function setup(options, imports, register)
 		 * @param {String} tutorialLink - github link for tutorial
 		 */
 		importTutorial (tutorialLink) {
-			
-			
+
 		}
 	};
 

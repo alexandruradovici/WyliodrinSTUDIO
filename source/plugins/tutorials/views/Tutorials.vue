@@ -55,6 +55,7 @@
 
 <script>
 import axios from 'axios';
+//import { js2xml } from 'xml-js';
 export default {
 	name: 'Tutorials',
 	props: ['repository'],
