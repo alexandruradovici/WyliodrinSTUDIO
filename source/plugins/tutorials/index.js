@@ -17,12 +17,15 @@ export function setup(options, imports, register)
 				repository: githubRepository,
 				width: 600
 			});
+		},
+		importTutorial (tutorialLink) {
+			
 		}
 	};
 
 	studio.workspace.registerToolbarButton ('TUTORIALS_NAME', 20, 
 		() => { 
-			tutorials.showTutorials ('alexandra2607/tutorials-wyliodrin');
+			tutorials.showTutorials ('alexandruradovici/tutorials-wyliodrin');
 		},
 
 		'plugins/tutorials/data/img/toque.png');
