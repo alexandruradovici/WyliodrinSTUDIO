@@ -22,7 +22,7 @@ export function setup(options, imports, register)
 
 	studio.workspace.registerToolbarButton ('TUTORIALS_NAME', 20, 
 		() => { 
-			tutorials.showTutorials ('alexandruradovici/tutorials-wyliodrin');
+			tutorials.showTutorials ('alexandra2607/tutorials-wyliodrin');
 		},
 
 		'plugins/tutorials/data/img/toque.png');
