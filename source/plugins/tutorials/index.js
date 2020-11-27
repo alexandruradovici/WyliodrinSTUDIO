@@ -18,6 +18,12 @@ export function setup(options, imports, register)
 				width: 600
 			});
 		},
+
+		/**
+		 * Import a tutorial from Github
+		 * 
+		 * @param {String} tutorialLink - github link for tutorial
+		 */
 		importTutorial (tutorialLink) {
 			
 		}
